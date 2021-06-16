@@ -4,8 +4,8 @@ import logging
 from logging.config import fileConfig
 
 from flask import current_app
-from app.models.salary import Salary
-from app.models.stats import Stats
+from salary_stats.models.salary import Salary
+from salary_stats.models.stats import Stats
 
 from alembic import context
 
@@ -20,7 +20,7 @@ logger = logging.getLogger('alembic.env')
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
+# from app import mymodel
 # target_metadata = mymodel.Base.metadata
 config.set_main_option(
     'sqlalchemy.url',
