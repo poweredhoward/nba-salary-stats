@@ -4,7 +4,8 @@ from app import db
 class Stats(db.Model):
     __tablename__ = "player_stats"
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    data_id = db.Column(db.Integer)
     player_name = db.Column(db.String(100))
     season = db.Column(db.Integer)
     position = db.Column(db.String(100))
@@ -58,9 +59,9 @@ class Stats(db.Model):
 
 
 
-    def __init__(self, **kwargs):
-        for k, v in kwargs.iteritems():
-            self.k = v
+    # def __init__(self, **kwargs):
+    #     for k, v in kwargs.iteritems():
+    #         self.k = v
 
     
     def __repr__(self):

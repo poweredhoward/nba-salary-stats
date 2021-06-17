@@ -4,6 +4,7 @@ import logging
 from logging.config import fileConfig
 
 from flask import current_app
+
 from app.models.salary import Salary
 from app.models.stats import Stats
 

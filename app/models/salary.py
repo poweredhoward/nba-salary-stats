@@ -3,7 +3,8 @@ from app import db
 class Salary(db.Model):
     __tablename__ = "player_salary"
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    data_id = db.Column(db.Integer)
     player_name = db.Column(db.String(100))
     salary = db.Column(db.Integer)
     season_start = db.Column(db.Integer)

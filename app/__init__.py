@@ -31,6 +31,8 @@ def create_app():
 
     with app.app_context():
         from . import views  # Import routes
+        from .models.salary import Salary
+        from .models.stats import Stats
         # from models import salary
 
         # db.create_all()  # Create database tables for our data models

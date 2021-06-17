@@ -2,36 +2,135 @@ from flask import current_app as app
 # from . import 
 
 from app.models.salary import Salary
+from app.models.stats import Stats
 import csv
 from app import db
+
+
+"""
+select * from player_salary as sal
+inner join player_stats stats on stats.player_name = sal.player_name and stats.season = sal.season_start
+where season_start < 2010
+and sal.player_name = 'Tracy McGrady'
+order by salary desc
+
+select * from player_salary
+where player_name LIKE '%Tracy%'
+
+"""
 
 
 @app.route('/')
 def hello():
     seed_salary_table()
+    seed_stats_table()
     return {"hello": "world"}
+
+
+salary_column_mapping = {
+    'Register Value': "data_id",
+    'Player Name':"player_name",
+    'Salary in $':"salary",
+    'Season Start':"season_start",
+    'Season End': "season_end",
+    'Team': "team_short",
+    'Full Team Name':"team_full"
+}
+
+
+stats_column_mapping = {
+    "Index": "data_id",
+    "Year": "season",
+    "Player": "player_name",
+    "Pos": "position",
+    "Age": "age",
+    "Tm": "team",
+    "G": "games_played",
+    "GS": "games_started",
+    "MP": "min_played",
+    "PER": "per",
+    "TS%": "true_shooting",
+    "3PAr": "three_pt_att_rate",
+    "FTr": "ft_rate",
+    "ORB%": "off_reb_perc",
+    "DRB%": "def_reb_perc",
+    "TRB%": "total_reb_perc",
+    "AST%": "assist_perc",
+    "STL%": "steal_perc",
+    "BLK%": "block_perc",
+    "TOV%": "to_perc",
+    "USG%": "usage_perc",
+    "OWS": "offensive_win_shares",
+    "DWS": "defensive_win_shares",
+    "WS": "win_shares",
+    "WS/48": "win_shares_per_48",
+    "OBPM": "offensive_box_p_m",
+    "DBPM": "defensive_box_p_m",
+    "BPM": "box_p_m",
+    "VORP": "var",
+    "FG": "fg",
+    "FGA": "fga",
+    "FG%": "fg_perc",
+    "3P": "three_pt_fg",
+    "3PA": "three_pt_fga",
+    "3P%": "three_pt_fg_perc",
+    "2P": "two_pt_fg",
+    "2PA": "two_pt_fga",
+    "2P%": "two_pt_fg_perc",
+    "eFG%": "effective_fg_perc",
+    "FT": "ft",
+    "FTA": "fta",
+    "FT%": "ft_perc",
+    "ORB": "off_reb",
+    "DRB": "def_reb",
+    "TRB": "reb",
+    "AST": "assists",
+    "STL": "steals",
+    "BLK": "blocks",
+    "TOV": "turnovers",
+    "PF": "fouls",
+    "PTS": "points"
+}
+
 
 
     
 def seed_salary_table():
-    with open('app/static/data/player_salaries.csv') as stats_file:
-        csv_reader = csv.DictReader(stats_file, delimiter=',')
+    with open('app/static/data/player_salaries.csv') as salary_file:
+        csv_reader = csv.DictReader(salary_file, delimiter=',')
         line_count = 0
         for row in csv_reader:
-            if line_count < 20:
-                line_count += 1
-                player_salary = Salary(
-                    id=row['Register Value'],
-                    player_name=row['Player Name'],
-                    salary=row['Salary in $'],
-                    season_start=row['Season Start'],
-                    season_end=row['Season End'],
-                    team_short=row['Team'],
-                    team_full=row['Full Team Name']
-                )
-                db.session.add(player_salary)
-                db.session.commit()
-                # db.session.flush()
-                # print(row['Player Name'])
-                # print(row['Salary in $'])
+            player_dict = {}
+            for k, v in row.items():
+                key, val = map_salaries(k, v)
+                player_dict[key] = val
+            player_salary = Salary(**player_dict)
+            db.session.add(player_salary)
+        db.session.commit()
 
+
+
+def seed_stats_table():
+    with open('app/static/data/player_stats.csv') as stats_file:
+        csv_reader = csv.DictReader(stats_file, delimiter=',')
+        for row in csv_reader:
+            player_dict = {}
+            for k, v in row.items():
+                if k not in stats_column_mapping or not k or not v:
+                    continue
+                key, val = map_stats(k, v)
+                player_dict[key] = val
+            player_stats = Stats(**player_dict)
+            db.session.add(player_stats)
+        db.session.commit()
+
+
+def map_salaries(key, value):
+    if not value or len(value) == 0:
+        return None
+    return salary_column_mapping[key], value
+
+def map_stats(key, value):
+    if not value or len(value) == 0:
+        return None
+    return stats_column_mapping[key], value
