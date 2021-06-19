@@ -1,4 +1,6 @@
 from flask import current_app as app
+from flask import request as flask_request
+from flask import render_template
 # from . import 
 
 from app.models.salary import Salary
@@ -19,12 +21,31 @@ where player_name LIKE '%Tracy%'
 
 """
 
-
 @app.route('/')
-def hello():
-    seed_salary_table()
-    seed_stats_table()
+def index():
+    print("index")
+    return render_template('dashboard.html')
+
+
+@app.route('/seed/6516854352asdffsdg')
+def get():
+    print("Seeding")
+    # seed_salary_table()
+    # seed_stats_table()
     return {"hello": "world"}
+
+
+@app.route('/getVisual/scatterplot', methods=['POST'])
+def post():
+    print("scatter")
+    params = flask_request.get_json(force=True)
+    print(params)
+    return "success"
+
+
+
+
+
 
 
 salary_column_mapping = {

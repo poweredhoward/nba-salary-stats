@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <h1>
+            Analyze NBA Players' Stats and Salaries
+        </h1>
+
+        <p>
+            Scatterplot
+            <button id="get_scatterplot" onclick="getScatterplot()">
+                Generate
+            </button>
+        </p>
+
+        <p>
+            Box Plot
+        </p>
+
+        <p>
+            Heatmap
+        </p>
+
+        <button id="seed_data" onclick="seedFunction()">
+            Seed DB
+        </button>
+    </body>
+
+    <script>
+
+        function getScatterplot () {
+            let params = {
+                "field_1": 10,
+                "field_2": "hello"
+            }
+
+            fetch("/getVisual/scatterplot",
+             {method: "POST", body: JSON.stringify(params)}
+             ).then( function(res) {
+                if (response.ok){
+                    return res.json()
+                }
+            })
+        }
+
+        function seedFunction(){
+            console.log("seed")
+            fetch("/seed/6516854352asdffsdg").then( function(res) {
+                console.log("worked")
+                return res.json()
+            })
+        }
+
+    </script>
+</html>
