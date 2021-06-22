@@ -3,8 +3,11 @@ from flask import request as flask_request
 from flask import render_template
 # from . import 
 
+from sqlalchemy import and_
+
 from app.models.salary import Salary
 from app.models.stats import Stats
+
 import csv
 from app import db
 
@@ -40,6 +43,14 @@ def post():
     print("scatter")
     params = flask_request.get_json(force=True)
     print(params)
+
+    results = db.session\
+        .query(Stats.player_name, Salary.salary, Stats.games_played, Stats.season, Salary.season_start, Salary.team_short, Stats.team)\
+        .join(Salary, and_(Stats.season==Salary.season_start, Stats.player_name==Salary.player_name))\
+        .limit(2000)\
+        .all()
+    l = results[0]
+    s = results[1]
     return "success"
 
 

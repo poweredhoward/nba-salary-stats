@@ -22,6 +22,8 @@ def create_app():
 
     app.config['SQLALCHEMY_DATABASE_URI'] = config['Database Info']['SQLALCHEMY_DATABASE_URI']
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = config['Database Info']['SQLALCHEMY_TRACK_MODIFICATIONS']
+    # app.config['SQLALCHEMY_ECHO'] = config['Database Info']['SQLALCHEMY_ECHO']
+
 
 
 
