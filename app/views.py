@@ -1,15 +1,20 @@
 from flask import current_app as app
 from flask import request as flask_request
 from flask import render_template
+from flask import Response
 # from . import 
 
 from sqlalchemy import and_
+import csv
+import pandas as pd
+import seaborn as sns
+import io
+import matplotlib.image
 
 from app.models.salary import Salary
 from app.models.stats import Stats
-
-import csv
 from app import db
+
 
 
 """
@@ -37,6 +42,11 @@ def get():
     # seed_stats_table()
     return {"hello": "world"}
 
+@app.route('/plot.png')
+def plot_png():
+    read_img = matplotlib.image.imread('plot.png')
+    return Response(read_img, mimetype="image/png")
+
 
 @app.route('/getVisual/scatterplot', methods=['POST'])
 def post():
@@ -44,13 +54,37 @@ def post():
     params = flask_request.get_json(force=True)
     print(params)
 
-    results = db.session\
-        .query(Stats.player_name, Salary.salary, Stats.games_played, Stats.season, Salary.season_start, Salary.team_short, Stats.team)\
-        .join(Salary, and_(Stats.season==Salary.season_start, Stats.player_name==Salary.player_name))\
-        .limit(2000)\
-        .all()
-    l = results[0]
-    s = results[1]
+    img = io.BytesIO()
+
+    # results = db.session\
+        # .query(Stats.player_name, Salary.salary,Stats.season, Stats.team)\
+        # .join(Salary, and_(Stats.season==Salary.season_start, Stats.player_name==Salary.player_name))\
+        # .limit(2000)\
+        # .all()
+
+
+    results1 = db.session\
+            .query(Stats.player_name, Salary.salary, Stats.season, Stats.team, Stats.points)\
+            .join(Salary, and_(Stats.season==Salary.season_start, Stats.player_name==Salary.player_name))\
+            .filter(Stats.season > 1990)\
+            .limit(4000)
+    df = pd.read_sql(results1.statement, db.session.bind)
+    # print(df)
+
+    # players = sns.load_dataset(df)
+
+    plot = sns.lmplot(
+        data = df,
+        x="points",
+        y="salary"
+    )
+
+    # fig = plot.get_figure()
+    plot.savefig("app/templates/plot.png")
+
+    # sns.savefig(img, format="png")
+
+
     return "success"
 
 
@@ -128,6 +162,7 @@ stats_column_mapping = {
 
     
 def seed_salary_table():
+    # TODO: Normalize salaries based on inflation
     with open('app/static/data/player_salaries.csv') as salary_file:
         csv_reader = csv.DictReader(salary_file, delimiter=',')
         line_count = 0
