@@ -31,10 +31,12 @@ where player_name LIKE '%Tracy%'
 
 """
 
+
+# TODO: Add exception handling
 @app.route('/')
 def index():
     print("index")
-    stat_options = stats_column_mapping.keys()
+    stat_options = stats_column_mapping.items()
     return render_template('dashboard.html', stat_options=stat_options)
 
 
@@ -68,7 +70,7 @@ def post():
 
 
     results1 = db.session\
-            .query(Stats.player_name, Salary.salary, Stats.season, Stats.team, getattr(Stats.columns,stat_selected) )\
+            .query(Stats.player_name, Salary.salary, Stats.season, Stats.team, getattr(Stats,stat_selected) )\
             .join(Salary, and_(Stats.season==Salary.season_start, Stats.player_name==Salary.player_name))\
             .filter(Stats.season > 1995)\
             .limit(4000)

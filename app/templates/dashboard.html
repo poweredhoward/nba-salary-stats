@@ -8,8 +8,8 @@
         <p>
             Scatterplot
             <select id="scatterplot_field">
-                {% for option in stat_options %}
-                    <option value="{{option}}">{{option}}</option>
+                {% for key, value in stat_options %}
+                    <option value="{{value}}">{{key}}</option>
                 {% endfor %}
             </select>
             <button id="get_scatterplot" onclick="getScatterplot()">
