@@ -11,6 +11,8 @@ import seaborn as sns
 import io
 import matplotlib.image
 
+import uuid
+
 from app.models.salary import Salary
 from app.models.stats import Stats
 from app import db
@@ -32,7 +34,8 @@ where player_name LIKE '%Tracy%'
 @app.route('/')
 def index():
     print("index")
-    return render_template('dashboard.html')
+    stat_options = stats_column_mapping.keys()
+    return render_template('dashboard.html', stat_options=stat_options)
 
 
 @app.route('/seed/6516854352asdffsdg')
@@ -53,6 +56,7 @@ def post():
     print("scatter")
     params = flask_request.get_json(force=True)
     print(params)
+    stat_selected = str(params['stat_selected'])
 
     img = io.BytesIO()
 
@@ -64,9 +68,9 @@ def post():
 
 
     results1 = db.session\
-            .query(Stats.player_name, Salary.salary, Stats.season, Stats.team, Stats.points)\
+            .query(Stats.player_name, Salary.salary, Stats.season, Stats.team, getattr(Stats.columns,stat_selected) )\
             .join(Salary, and_(Stats.season==Salary.season_start, Stats.player_name==Salary.player_name))\
-            .filter(Stats.season > 1990)\
+            .filter(Stats.season > 1995)\
             .limit(4000)
     df = pd.read_sql(results1.statement, db.session.bind)
     # print(df)
@@ -75,22 +79,30 @@ def post():
 
     plot = sns.lmplot(
         data = df,
-        x="points",
-        y="salary"
+        x=stat_selected,
+        y="salary",
+        legend_out=True
     )
 
+    file_path, filename = generate_filename()
+
+
     # fig = plot.get_figure()
-    plot.savefig("app/templates/plot.png")
+    plot.savefig("{}".format(file_path))
 
     # sns.savefig(img, format="png")
 
 
-    return "success"
+    return {
+        "filename": filename
+    }
 
 
 
 
-
+def generate_filename():
+    filename = uuid.uuid4().hex
+    return "app/static/{}.png".format(filename), "static/{}.png".format(filename)
 
 
 salary_column_mapping = {

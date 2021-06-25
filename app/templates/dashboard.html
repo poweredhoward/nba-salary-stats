@@ -7,10 +7,15 @@
 
         <p>
             Scatterplot
+            <select id="scatterplot_field">
+                {% for option in stat_options %}
+                    <option value="{{option}}">{{option}}</option>
+                {% endfor %}
+            </select>
             <button id="get_scatterplot" onclick="getScatterplot()">
                 Generate
             </button>
-            <img src="/plot.png">
+            <img id="scatterplot" src="static/plot.png">
         </p>
 
         <p>
@@ -29,19 +34,18 @@
     <script>
 
         function getScatterplot () {
+            let stat_selected = document.getElementById("scatterplot_field").value
+
             let params = {
-                "field_1": 10,
-                "field_2": "hello"
+                "stat_selected": stat_selected
             }
 
-            fetch("/getVisual/scatterplot",
-             {method: "POST", body: JSON.stringify(params)}
-             ).then( function(res) {
-                if (response.ok){
-                    return res.json()
-                }
-            })
+            post("/getVisual/scatterplot", params).then(data => {
+                console.log(data)
+                document.getElementById("scatterplot").src = data['filename'];
+            })            
         }
+
 
         function seedFunction(){
             console.log("seed")
@@ -49,6 +53,20 @@
                 console.log("worked")
                 return res.json()
             })
+        }
+
+
+
+        async function post(url, data){
+            const response = await fetch(
+                url,
+                {method: "POST", body: JSON.stringify(data)}
+            );
+
+            if (response.ok){
+                return response.json()
+            }
+             
         }
 
     </script>
