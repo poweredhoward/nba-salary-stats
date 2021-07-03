@@ -19,9 +19,15 @@ def create_app():
     config = ConfigParser()
     config.read('app/config.ini')
 
+    print(config.sections())
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = config['Database Info']['SQLALCHEMY_DATABASE_URI']
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = config['Database Info']['SQLALCHEMY_TRACK_MODIFICATIONS']
+    # app.config['SQLALCHEMY_DATABASE_URI'] = config['Database Info']['SQLALCHEMY_DATABASE_URI']
+    app.config['SQLALCHEMY_DATABASE_URI'] = config.get("Database Info", "SQLALCHEMY_DATABASE_URI")
+    # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = config['Database Info']['SQLALCHEMY_TRACK_MODIFICATIONS']
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    print(app.config['SQLALCHEMY_DATABASE_URI'])
+
     # app.config['SQLALCHEMY_ECHO'] = config['Database Info']['SQLALCHEMY_ECHO']
 
 

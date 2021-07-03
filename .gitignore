@@ -1,7 +1,9 @@
 env
 
-*.ini
+app/config.ini
 
 *.pyc
 
 *.vscode
+
+*.png

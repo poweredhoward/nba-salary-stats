@@ -43,8 +43,8 @@ def index():
 @app.route('/seed/6516854352asdffsdg')
 def get():
     print("Seeding")
-    # seed_salary_table()
-    # seed_stats_table()
+    seed_salary_table()
+    seed_stats_table()
     return {"hello": "world"}
 
 @app.route('/plot.png')
