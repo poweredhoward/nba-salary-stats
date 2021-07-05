@@ -7,9 +7,19 @@
 
         <p>
             Scatterplot
-            <select id="scatterplot_field">
+            <select id="stat_selected">
                 {% for key, value in stat_options %}
                     <option value="{{value}}">{{key}}</option>
+                {% endfor %}
+            </select>
+            <select id="year_selected">
+                {% for year in year_options %}
+                <option value="{{year}}">{{year}}</option>
+                {% endfor %}
+            </select>
+            <select id="position_selected">
+                {% for position in position_options %}
+                <option value="{{position}}">{{position}}</option>
                 {% endfor %}
             </select>
             <button id="get_scatterplot" onclick="getScatterplot()">
@@ -19,7 +29,7 @@
         </p>
 
         <p>
-            Box Plot
+            Box Plot / historgram
         </p>
 
         <p>
@@ -34,10 +44,14 @@
     <script>
 
         function getScatterplot () {
-            let stat_selected = document.getElementById("scatterplot_field").value
+            let stat_selected = document.getElementById("stat_selected").value
+            let year_selected = document.getElementById("year_selected").value
+            let position_selected = document.getElementById("position_selected").value
 
             let params = {
-                "stat_selected": stat_selected
+                "stat_selected": stat_selected,
+                "year_selected": year_selected,
+                "position_selected": position_selected
             }
 
             post("/getVisual/scatterplot", params).then(data => {

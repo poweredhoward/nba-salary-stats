@@ -10,6 +10,8 @@ import pandas as pd
 import seaborn as sns
 import io
 import matplotlib.image
+import matplotlib
+matplotlib.use('Agg')
 
 import uuid
 
@@ -35,9 +37,20 @@ where player_name LIKE '%Tracy%'
 # TODO: Add exception handling
 @app.route('/')
 def index():
-    print("index")
     stat_options = stats_column_mapping.items()
-    return render_template('dashboard.html', stat_options=stat_options)
+    years = db.session.query(Salary)\
+        .distinct(Salary.season_start)\
+        .filter(Salary.season_start > 1995)\
+        .order_by(Salary.season_start.desc()).all()
+    year_options = [ year.season_start for year in years ]
+    position_options = ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C']
+
+    return render_template(
+        'dashboard.html',
+        stat_options=stat_options,
+        year_options = year_options,
+        position_options = position_options
+        )
 
 
 @app.route('/seed/6516854352asdffsdg')
@@ -55,10 +68,11 @@ def plot_png():
 
 @app.route('/getVisual/scatterplot', methods=['POST'])
 def post():
-    print("scatter")
     params = flask_request.get_json(force=True)
     print(params)
     stat_selected = str(params['stat_selected'])
+    year_selected = int(params['year_selected'])
+    position_selected = "%{}%".format(str(params['position_selected']))
 
     img = io.BytesIO()
 
@@ -72,18 +86,19 @@ def post():
     results1 = db.session\
             .query(Stats.player_name, Salary.salary, Stats.season, Stats.team, getattr(Stats,stat_selected) )\
             .join(Salary, and_(Stats.season==Salary.season_start, Stats.player_name==Salary.player_name))\
-            .filter(Stats.season > 1995)\
+            .filter(Salary.season_start > year_selected)\
+            .filter(Stats.position.like(position_selected))\
             .limit(4000)
     df = pd.read_sql(results1.statement, db.session.bind)
     # print(df)
 
     # players = sns.load_dataset(df)
 
+    # TODO: Set boundaries of Y axis for max salary
     plot = sns.lmplot(
         data = df,
         x=stat_selected,
-        y="salary",
-        legend_out=True
+        y="salary"
     )
 
     file_path, filename = generate_filename()
@@ -91,6 +106,8 @@ def post():
 
     # fig = plot.get_figure()
     plot.savefig("{}".format(file_path))
+
+    # plot.close()
 
     # sns.savefig(img, format="png")
 
