@@ -25,11 +25,14 @@
             <button id="get_scatterplot" onclick="getScatterplot()">
                 Generate
             </button>
-            <img id="scatterplot" src="static/plot.png">
+            <img id="scatterplot" src="static/scatterplot.png">
+
         </p>
 
         <p>
             Box Plot / historgram
+            <img id="histogram" src="static/histogram.png">
+
         </p>
 
         <p>
@@ -56,7 +59,9 @@
 
             post("/getVisual/scatterplot", params).then(data => {
                 console.log(data)
-                document.getElementById("scatterplot").src = data['filename'];
+                document.getElementById("scatterplot").src = data['scatterplot_filename'];
+                document.getElementById("histogram").src = data['histogram_filename'];
+
             })            
         }
 

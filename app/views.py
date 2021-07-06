@@ -1,7 +1,9 @@
+from os import stat
 from flask import current_app as app
 from flask import request as flask_request
 from flask import render_template
 from flask import Response
+from numpy import histogram
 # from . import 
 
 from sqlalchemy import and_
@@ -95,17 +97,28 @@ def post():
     # players = sns.load_dataset(df)
 
     # TODO: Set boundaries of Y axis for max salary
-    plot = sns.lmplot(
+    scatterplot = sns.lmplot(
         data = df,
         x=stat_selected,
         y="salary"
     )
 
-    file_path, filename = generate_filename()
+    file_path, scatterplot_filename = generate_filename()
+    scatterplot.savefig("{}".format(file_path))
+
+
+    # histogram = sns.displot(
+    #     data = df,
+    #     x=stat_selected,
+    #     y="salary",
+    #     kind="kde"
+    # )
+    histogram = sns.displot(df["salary"], bins=100)
+    file_path, histogram_filename = generate_filename()
+    histogram.savefig("{}".format(file_path))
 
 
     # fig = plot.get_figure()
-    plot.savefig("{}".format(file_path))
 
     # plot.close()
 
@@ -113,7 +126,8 @@ def post():
 
 
     return {
-        "filename": filename
+        "scatterplot_filename": scatterplot_filename,
+        "histogram_filename": histogram_filename
     }
 
 
