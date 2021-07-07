@@ -118,6 +118,15 @@ def post():
     histogram.savefig("{}".format(file_path))
 
 
+
+    heatmap = sns.boxplot(
+        data = df,
+        x=stat_selected,
+        y="salary"
+    )
+    file_path, heatmap_filename = generate_filename()
+    heatmap.figure.savefig("{}".format(file_path))
+
     # fig = plot.get_figure()
 
     # plot.close()
@@ -127,7 +136,8 @@ def post():
 
     return {
         "scatterplot_filename": scatterplot_filename,
-        "histogram_filename": histogram_filename
+        "histogram_filename": histogram_filename,
+        "heatmap_filename": heatmap_filename
     }
 
 

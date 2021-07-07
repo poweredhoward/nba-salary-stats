@@ -37,6 +37,7 @@
 
         <p>
             Heatmap
+            <img id="heatmap" src="static.heatmap.png">
         </p>
 
         <button id="seed_data" onclick="seedFunction()">
@@ -61,6 +62,8 @@
                 console.log(data)
                 document.getElementById("scatterplot").src = data['scatterplot_filename'];
                 document.getElementById("histogram").src = data['histogram_filename'];
+                document.getElementById("heatmap").src = data['heatmap_filename'];
+
 
             })            
         }
