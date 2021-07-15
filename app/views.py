@@ -4,6 +4,9 @@ from flask import request as flask_request
 from flask import render_template
 from flask import Response
 from numpy import histogram
+import numpy as np
+from joblib import dump, load
+
 # from . import 
 
 from sqlalchemy import and_
@@ -36,7 +39,7 @@ where player_name LIKE '%Tracy%'
 """
 
 
-# TODO: Add exception handling
+# TODO: Add exception handling!!!
 @app.route('/')
 def index():
     stat_options = stats_column_mapping.items()
@@ -55,6 +58,29 @@ def index():
         )
 
 
+@app.route('/prediction/salary')
+def post():
+    params = flask_request.get_json(force=True)
+    print(params)
+
+    input = np.array([[
+        params['min_played'],
+        params['true_shooting'],
+        params['off_reb_perc'],
+        params['to_perc'],
+        params['offensive_box_p_m'],
+        params['off_reb'],
+        params['points']
+    ]])
+
+    model = load('random_forest_model.joblib')
+    salary_prediction = model.predict(input)
+    print(salary_prediction)
+
+    return salary_prediction
+
+
+
 @app.route('/seed/6516854352asdffsdg')
 def get():
     print("Seeding")
@@ -66,6 +92,8 @@ def get():
 def plot_png():
     read_img = matplotlib.image.imread('plot.png')
     return Response(read_img, mimetype="image/png")
+
+
 
 
 @app.route('/getVisual/scatterplot', methods=['POST'])
@@ -91,6 +119,7 @@ def post():
             .filter(Salary.season_start > year_selected)\
             .filter(Stats.position.like(position_selected))\
             .limit(4000)
+    
     df = pd.read_sql(results1.statement, db.session.bind)
     # print(df)
 
@@ -146,6 +175,67 @@ def post():
 def generate_filename():
     filename = uuid.uuid4().hex
     return "app/static/{}.png".format(filename), "static/{}.png".format(filename)
+
+
+
+
+
+"""
+select 
+    distinct
+    sal.salary,
+    stats.age,
+    stats.games_played,
+    stats.games_started,
+    stats.min_played,
+    stats.per,
+    stats.true_shooting,
+    stats.three_pt_att_rate,
+    stats.ft_rate,
+    stats.off_reb_perc,
+    stats.def_reb_perc,
+    stats.total_reb_perc,
+    stats.assist_perc,
+    stats.steal_perc,
+    stats.block_perc,
+    stats.to_perc,
+    stats.usage_perc,
+    stats.offensive_win_shares,
+    stats.defensive_win_shares,
+    stats.win_shares,
+    stats.win_shares_per_48,
+    stats.offensive_box_p_m,
+    stats.defensive_box_p_m,
+    stats.box_p_m,
+    stats.var,
+    stats.fg,
+    stats.fga,
+    stats.fg_perc,
+    stats.three_pt_fg,
+    stats.three_pt_fga,
+    stats.three_pt_fg_perc,
+    stats.two_pt_fg,
+    stats.two_pt_fga,
+    stats.two_pt_fg_perc,
+    stats.effective_fg_perc,
+    stats.ft,
+    stats.fta,
+    stats.ft_perc,
+    stats.off_reb,
+    stats.def_reb,
+    stats.reb,
+    stats.assists,
+    stats.steals,
+    stats.blocks,
+    stats.turnovers,
+    stats.fouls,
+    stats.points
+from player_salary AS sal
+INNER JOIN player_stats AS stats
+ON sal.season_start=stats.season AND sal.player_name=stats.player_name
+
+"""
+
 
 
 salary_column_mapping = {
