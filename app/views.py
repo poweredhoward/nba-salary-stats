@@ -58,20 +58,22 @@ def index():
         )
 
 
-@app.route('/prediction/salary')
-def post():
+@app.route('/prediction/salary', methods=['POST'])
+def get_prediction():
     params = flask_request.get_json(force=True)
     print(params)
 
     input = np.array([[
-        params['min_played'],
-        params['true_shooting'],
-        params['off_reb_perc'],
-        params['to_perc'],
-        params['offensive_box_p_m'],
-        params['off_reb'],
-        params['points']
+        float(params['min_played']),
+        float(params['true_shooting']),
+        float(params['off_reb_perc']),
+        float(params['to_perc']),
+        float(params['offensive_box_p_m']),
+        float(params['off_reb']),
+        float(params['points'])
     ]])
+
+    # [1398, 0.516, 5.241, 13.8, 1, 50, 1000] -> 10313240.13318653
 
     model = load('random_forest_model.joblib')
     salary_prediction = model.predict(input)
