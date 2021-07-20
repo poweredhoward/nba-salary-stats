@@ -6,7 +6,6 @@
         </h1>
 
         <p>
-            Scatterplot
             <select id="stat_selected">
                 {% for key, value in stat_options %}
                     <option value="{{value}}">{{key}}</option>
@@ -25,27 +24,33 @@
             <button id="get_scatterplot" onclick="getScatterplot()">
                 Generate
             </button>
-            <img id="scatterplot" src="static/scatterplot.png">
-
         </p>
+
 
         <p>
-            Box Plot / historgram
-            <img id="histogram" src="static/histogram.png">
-
+            Scatterplot
+            <img id="scatterplot" class="default-hidden" src="static/default.jpeg">
         </p>
 
+       <p>
+            Histogram
+            <img id="histogram" class="default-hidden" src="static/default.jpeg">
+        </p>
+        <!-- 
         <p>
             Heatmap
             <img id="heatmap" src="static.heatmap.png">
+        </p> -->
+
+        <br>
+        <br>
+
+        <p>
+            This is a chart with a breakdown of the most significant statistics that were used to
+            build this machine learning mode.
         </p>
-
-        <button id="seed_data" onclick="seedFunction()">
-            Seed DB
-        </button>
-
-        <br>
-        <br>
+        
+        {{data | safe}}
 
         <div>
             <h2>
@@ -57,64 +62,66 @@
                 of salary
             </p>
 
-            <!-- TODO: Can we get these stats to be per game? -->
             <p>
-                <label for="min_played">
-                    Minutes Played
-                    <input type="number" id="min_played">
+                <label for="age">
+                    Age
+                    <input type="number" id="age">
                 </label>
             </p>
 
             <p>
-                <label for="true_shooting">
-                    True Shooting
-                    <input type="number" id="true_shooting">
+                <label for="per">
+                    Player Efficient Rating
+                    <input type="number" id="per">
                 </label>
             </p>
 
             <p>
-                <label for="off_reb_perc">
-                    Offsensive Rebound Percentage
-                    <input type="number" id="off_reb_perc">
-                </label>
-            </p>
-
-            <!-- TODO: Make sure this is an inverse relationship -->
-            <p>
-                <label for="to_perc">
-                    Turnover Percentage
-                    <input type="number" id="to_perc">
+                <label for="ppg">
+                    Points Per Game
+                    <input type="number" id="ppg">
                 </label>
             </p>
 
             <p>
-                <label for="offensive_box_p_m">
-                    Offensive Plus/Minus
-                    <input type="number" id="offensive_box_p_m">
+                <label for="min_per_game">
+                    Minutes Per Game
+                    <input type="number" id="min_per_game">
                 </label>
             </p>
 
             <p>
-                <label for="off_reb">
-                    Offsensive Rebounds
-                    <input type="number" id="off_reb">
+                <label for="def_reb_per_game">
+                    Defensive Rebounds Per Game
+                    <input type="number" id="def_reb_per_game">
                 </label>
             </p>
 
             <p>
-                <label for="points">
-                    Points
-                    <input type="number" id="points">
+                <label for="fg_per_game">
+                    Field Goals Made Per Game
+                    <input type="number" id="fg_per_game">
                 </label>
             </p>
 
-            <button type="button" onclick="getPrediction()">
+            <p>
+                <label for="fga_per_game">
+                    Fields Goals Attempted Per Game
+                    <input type="number" id="fga_per_game">
+                </label>
+            </p>
+
+            <button onclick="getPrediction()">
                 Get Predicted Salary
             </button>
         </div>
 
         <h3 id="predicted_salary">
         </h3>
+
+        <br>
+        <br>
+
     </body>
 
     <script>
@@ -134,7 +141,7 @@
                 console.log(data)
                 document.getElementById("scatterplot").src = data['scatterplot_filename'];
                 document.getElementById("histogram").src = data['histogram_filename'];
-                document.getElementById("heatmap").src = data['heatmap_filename'];
+                // document.getElementById("heatmap").src = data['heatmap_filename'];
 
 
             })            
@@ -151,29 +158,29 @@
 
 
         function getPrediction(){
-            let min_played = document.getElementById("min_played").value;
-            let true_shooting = document.getElementById("true_shooting").value;
-            let off_reb_perc = document.getElementById("off_reb_perc").value;
-            let to_perc = document.getElementById("to_perc").value;
-            let offensive_box_p_m = document.getElementById("offensive_box_p_m").value;
-            let off_reb = document.getElementById("off_reb").value;
-            let points = document.getElementById("points").value;
+            let age = document.getElementById("age").value;
+            let per = document.getElementById("per").value;
+            let ppg = document.getElementById("ppg").value;
+            let min_per_game = document.getElementById("min_per_game").value;
+            let def_reb_per_game = document.getElementById("def_reb_per_game").value;
+            let fg_per_game = document.getElementById("fg_per_game").value;
+            let fga_per_game = document.getElementById("fga_per_game").value;
 
             let params = {
-                'min_played': min_played,
-                'true_shooting': true_shooting,
-                'off_reb_perc': off_reb_perc,
-                'to_perc': to_perc,
-                'offensive_box_p_m': offensive_box_p_m,
-                'off_reb': off_reb,
-                'points': points
+                'age': age,
+                'per': per,
+                'ppg': ppg,
+                'min_per_game': min_per_game,
+                'def_reb_per_game': def_reb_per_game,
+                'fg_per_game': fg_per_game,
+                'fga_per_game': fga_per_game
             }
 
             post('/prediction/salary', params).then(data => {
                 console.log(data);
 
-                let salary = data;
-                document.getElementById("heatmap").text = salary
+                let salary = data['salary_prediction'];
+                document.getElementById("predicted_salary").textContent = salary
 
 
             })

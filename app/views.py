@@ -25,6 +25,8 @@ from app.models.stats import Stats
 from app import db
 
 
+TODAYS_SALARY_CAP = 101869000
+
 
 """
 select * from player_salary as sal
@@ -42,19 +44,28 @@ where player_name LIKE '%Tracy%'
 # TODO: Add exception handling!!!
 @app.route('/')
 def index():
+    all_data = entire_dataset()
+
     stat_options = stats_column_mapping.items()
-    years = db.session.query(Salary)\
-        .distinct(Salary.season_start)\
-        .filter(Salary.season_start > 1995)\
-        .order_by(Salary.season_start.desc()).all()
-    year_options = [ year.season_start for year in years ]
-    position_options = ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C']
+    stat_options = list(stat_options)[6:]
+
+    # stat_options = list(all_data.columns.values)
+    years = db.session.query(Stats)\
+        .distinct(Stats.season)\
+        .filter(Stats.season > 1995)\
+        .order_by(Stats.season.desc()).all()
+    year_options = [ year.season for year in years ]
+    position_options = ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C', 'All']
+
+    optimized_fields = all_data[['% of cap', 'salary', 'cap', 'age', 'per', 'ppg', 'min_per_game', 'def_reb_per_game', 'fg_per_game', 'fga_per_game']]
+
 
     return render_template(
         'dashboard.html',
         stat_options=stat_options,
-        year_options = year_options,
-        position_options = position_options
+        year_options = year_options[1:],
+        position_options = position_options,
+        data=optimized_fields.describe().to_html()
         )
 
 
@@ -64,22 +75,39 @@ def get_prediction():
     print(params)
 
     input = np.array([[
-        float(params['min_played']),
-        float(params['true_shooting']),
-        float(params['off_reb_perc']),
-        float(params['to_perc']),
-        float(params['offensive_box_p_m']),
-        float(params['off_reb']),
-        float(params['points'])
+        float(params['age']),
+        float(params['per']), 
+        float(params['ppg']), 
+        float(params['min_per_game']), 
+        float(params['def_reb_per_game']), 
+        float(params['fg_per_game']), 
+        float(params['fga_per_game'])
     ]])
 
-    # [1398, 0.516, 5.241, 13.8, 1, 50, 1000] -> 10313240.13318653
+    # [1398, 0.516, 5.241, 13.8, 1, 50, 1000] -> 10313240.13318653 OUTDATED
+    # [30, 20, 0.37, 16, 37, 20, 34] -> 19373191.83589058
 
-    model = load('random_forest_model.joblib')
+
+    # 'age', 'per', 'ppg', 'min_per_game', 'def_reb_per_game', 'fg_per_game', 'fga_per_game'
+    # The two highest correlation models are PPG and PER
+
+    #'age', 'per', 'ppg', 'min_per_game', 'def_reb_per_game', 'fg_per_game', 'fga_per_game'
+    # [0.10806647 0.07723444 0.20894282 0.22335637 0.10230192 0.14825972, 0.13183825]
+    # predi = model_in.predict(np.array([[32.000000,	20.600000,	24.846429,	35.503247,	11.563301,	10.830878,	18.326087]])) 
+    # [33756126.48432434]
+
+
+
+    model = load('random_forest_model_2000_final.joblib')
     salary_prediction = model.predict(input)
     print(salary_prediction)
 
-    return salary_prediction
+    raw_prediction = (float(salary_prediction[0]) / 100) * TODAYS_SALARY_CAP
+    formatted_float = "${:,.2f}".format(raw_prediction)
+
+    return {
+        "salary_prediction": formatted_float
+    }
 
 
 
@@ -101,7 +129,6 @@ def plot_png():
 @app.route('/getVisual/scatterplot', methods=['POST'])
 def post():
     params = flask_request.get_json(force=True)
-    print(params)
     stat_selected = str(params['stat_selected'])
     year_selected = int(params['year_selected'])
     position_selected = "%{}%".format(str(params['position_selected']))
@@ -113,14 +140,24 @@ def post():
         # .join(Salary, and_(Stats.season==Salary.season_start, Stats.player_name==Salary.player_name))\
         # .limit(2000)\
         # .all()
-
+    
+    filters = [Salary.season_start > year_selected]
+    if position_selected and "All" not in position_selected:
+        filters.append((Stats.position.like(position_selected)))
+    # else:
+    #     filters.append((Stats.season > 1990))
+    f = and_(*filters)
+ 
+    print("hi")
 
     results1 = db.session\
             .query(Stats.player_name, Salary.salary, Stats.season, Stats.team, getattr(Stats,stat_selected) )\
             .join(Salary, and_(Stats.season==Salary.season_start, Stats.player_name==Salary.player_name))\
-            .filter(Salary.season_start > year_selected)\
-            .filter(Stats.position.like(position_selected))\
+            .filter(f)\
             .limit(4000)
+    
+    
+        
     
     df = pd.read_sql(results1.statement, db.session.bind)
     # print(df)
@@ -150,13 +187,13 @@ def post():
 
 
 
-    heatmap = sns.boxplot(
-        data = df,
-        x=stat_selected,
-        y="salary"
-    )
-    file_path, heatmap_filename = generate_filename()
-    heatmap.figure.savefig("{}".format(file_path))
+    # heatmap = sns.boxplot(
+    #     data = df,
+    #     x=stat_selected,
+    #     y="salary"
+    # )
+    # file_path, heatmap_filename = generate_filename()
+    # heatmap.figure.savefig("{}".format(file_path))
 
     # fig = plot.get_figure()
 
@@ -167,8 +204,7 @@ def post():
 
     return {
         "scatterplot_filename": scatterplot_filename,
-        "histogram_filename": histogram_filename,
-        "heatmap_filename": heatmap_filename
+        "histogram_filename": histogram_filename
     }
 
 
@@ -179,8 +215,41 @@ def generate_filename():
     return "app/static/{}.png".format(filename), "static/{}.png".format(filename)
 
 
+# def optimized_dataframe():
+
+def entire_dataset():
+    stats_dataset = pd.read_csv("salary-data_2000.csv")
+    stats_dataset.dropna()
+    stats_dataset['ppg'] = stats_dataset['points'] / stats_dataset['games_played']
+    stats_dataset['min_per_game'] = stats_dataset['min_played'] / stats_dataset['games_played']
+    stats_dataset['off_reb_per_game'] = stats_dataset['off_reb'] / stats_dataset['games_played']
+    stats_dataset['assists_per_game'] = stats_dataset['assists'] / stats_dataset['games_played']
+    stats_dataset['reb_per_game'] = stats_dataset['reb'] / stats_dataset['games_played']
+    stats_dataset['off_reb_per_game'] = stats_dataset['off_reb'] / stats_dataset['games_played']
+    stats_dataset['def_reb_per_game'] = stats_dataset['def_reb'] / stats_dataset['games_played']
+    stats_dataset['ft_per_game'] = stats_dataset['ft'] / stats_dataset['games_played']
+    stats_dataset['fta_per_game'] = stats_dataset['fta'] / stats_dataset['games_played']
+    stats_dataset['fg_per_game'] = stats_dataset['fg'] / stats_dataset['games_played']
+    stats_dataset['fga_per_game'] = stats_dataset['fga'] / stats_dataset['games_played']
+    stats_dataset['blocks_per_game'] = stats_dataset['blocks'] / stats_dataset['games_played']
+    stats_dataset['steals_per_game'] = stats_dataset['steals'] / stats_dataset['games_played']
+    stats_dataset['turnovers_per_game'] = stats_dataset['turnovers'] / stats_dataset['games_played']
+    stats_dataset['fouls_per_game'] = stats_dataset['fouls'] / stats_dataset['games_played']
+
+    salary_caps = pd.read_csv("salary-cap.csv", index_col=0).to_dict()
+    cap = salary_caps['Salary Cap']
+    stats_dataset['cap'] = stats_dataset['season'].map(cap)
+    stats_dataset["% of cap"] = (stats_dataset['salary']/stats_dataset['cap'])*100
 
 
+    return stats_dataset
+
+
+
+
+
+
+optimized_fields = ['% of cap', 'age', 'per', 'ppg', 'min_per_game', 'def_reb_per_game', 'fg_per_game', 'fga_per_game']
 
 """
 select 
