@@ -1,5 +1,5 @@
 from os import stat
-from flask import current_app as app
+from flask import current_app as application
 from flask import request as flask_request
 from flask import render_template
 from flask import Response
@@ -42,7 +42,7 @@ where player_name LIKE '%Tracy%'
 
 
 # TODO: Add exception handling!!!
-@app.route('/')
+@application.route('/')
 def index():
     all_data = entire_dataset()
 
@@ -69,7 +69,7 @@ def index():
         )
 
 
-@app.route('/prediction/salary', methods=['POST'])
+@application.route('/prediction/salary', methods=['POST'])
 def get_prediction():
     params = flask_request.get_json(force=True)
     print(params)
@@ -111,14 +111,14 @@ def get_prediction():
 
 
 
-@app.route('/seed/6516854352asdffsdg')
+@application.route('/seed/6516854352asdffsdg')
 def get():
     print("Seeding")
     seed_salary_table()
     seed_stats_table()
     return {"hello": "world"}
 
-@app.route('/plot.png')
+@application.route('/plot.png')
 def plot_png():
     read_img = matplotlib.image.imread('plot.png')
     return Response(read_img, mimetype="image/png")
@@ -126,7 +126,7 @@ def plot_png():
 
 
 
-@app.route('/getVisual/scatterplot', methods=['POST'])
+@application.route('/getVisual/scatterplot', methods=['POST'])
 def post():
     params = flask_request.get_json(force=True)
     stat_selected = str(params['stat_selected'])

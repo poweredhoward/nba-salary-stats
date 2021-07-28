@@ -7,3 +7,7 @@ app/config.ini
 *.vscode
 
 *.png
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

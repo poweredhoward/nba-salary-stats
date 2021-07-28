@@ -5,34 +5,34 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from configparser import ConfigParser
 from flask_migrate import Migrate
-# from app.models.salary import Salary
-# from app.seed import seed_db
+# from application.models.salary import Salary
+# from application.seed import seed_db
 
 db = SQLAlchemy()
 
 
 def create_app():
     """Construct the core application."""
-    app = Flask(__name__, instance_relative_config=False)
-    # app.config.from_object("config.Config")
+    application = Flask(__name__, instance_relative_config=False)
+    # application.config.from_object("config.Config")
 
     config = ConfigParser()
     config.read('app/config.ini')
 
     # print(config.sections())
 
-    # app.config['SQLALCHEMY_DATABASE_URI'] = config['Database Info']['SQLALCHEMY_DATABASE_URI']
-    app.config['SQLALCHEMY_DATABASE_URI'] = config.get("Database Info", "SQLALCHEMY_DATABASE_URI")
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = config['Database Info']['SQLALCHEMY_TRACK_MODIFICATIONS']
-    # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    # application.config['SQLALCHEMY_DATABASE_URI'] = config['Database Info']['SQLALCHEMY_DATABASE_URI']
+    application.config['SQLALCHEMY_DATABASE_URI'] = config.get("Database Info", "SQLALCHEMY_DATABASE_URI")
+    application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = config['Database Info']['SQLALCHEMY_TRACK_MODIFICATIONS']
+    # application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
 
-    db.init_app(app)
+    db.init_app(application)
 
-    # app.cli.add_command(seed_db)
+    # application.cli.add_command(seed_db)
 
-    with app.app_context():
+    with application.app_context():
         from . import views  # Import routes
         from .models.salary import Salary
         from .models.stats import Stats
@@ -40,15 +40,15 @@ def create_app():
 
         # db.create_all()  # Create database tables for our data models
         migration_dir = os.path.join('app','migrations')
-        migrate = Migrate(app, db, directory=migration_dir)
-        # register_commands(app)
+        migrate = Migrate(application, db, directory=migration_dir)
+        # register_commands(application)
 
 
 
-        return app
+        return application
 
 
 
-# app = create_app()
+# application = create_app()
 
 
