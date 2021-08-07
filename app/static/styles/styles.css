@@ -1,0 +1,13 @@
+.default-hidden{
+    visibility: hidden;
+}
+
+.visualization-label{
+    font-size: 120%;
+    font-weight: bold;
+    margin-left: 45%
+}
+
+th, td {
+    text-align: center;
+}

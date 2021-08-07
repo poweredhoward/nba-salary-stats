@@ -6,133 +6,142 @@
 
         <!-- Bootstrap CSS -->
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/styles.css') }}">
 
         <title>Salary Stats</title>
     </head>
     <body>
         <div class="container">
-
-            <h1>
-                Analyze NBA Players' Stats and Salaries
-            </h1>
-
-            <p>
-                <select class="form-select form-select-lg" id="stat_selected">
-                    {% for key, value in stat_options %}
-                        <option value="{{value}}">{{key}}</option>
-                    {% endfor %}
-                </select>
-                <select class="form-select form-select-lg" id="year_selected">
-                    {% for year in year_options %}
-                    <option value="{{year}}">{{year}}</option>
-                    {% endfor %}
-                </select>
-                <select class="form-select form-select-lg" id="position_selected">
-                    {% for position in position_options %}
-                    <option value="{{position}}">{{position}}</option>
-                    {% endfor %}
-                </select>
-                <button type="button" class="btn btn-primary" id="get_scatterplot" onclick="getScatterplot()">
-                    Generate
-                </button>
-            </p>
-
-
-            <p>
-                Scatterplot
-                <img id="scatterplot" class="default-hidden" src="static/default.jpeg">
-            </p>
-
-        <p>
-                Histogram
-                <img id="histogram" class="default-hidden" src="static/default.jpeg">
-            </p>
-            <!-- 
-            <p>
-                Heatmap
-                <img id="heatmap" src="static.heatmap.png">
-            </p> -->
-
-            <br>
-            <br>
-
-            <p>
-                This is a chart with a breakdown of the most significant statistics that were used to
-                build this machine learning model.
-            </p>
-            
-            {{data | safe}}
-
-            <div>
-                <h2>
-                    Predict Salary
-                </h2>
+            <div class="col">
+                <h1>
+                    Analyze NBA Players' Stats and Salaries
+                </h1>
 
                 <p>
-                    The following player statistics have been found to be the most important determinants
-                    of salary
+                    <select class="form-select form-select-lg" id="stat_selected">
+                        {% for key, value in stat_options %}
+                            <option value="{{value}}">{{key}}</option>
+                        {% endfor %}
+                    </select>
+                    <select class="form-select form-select-lg" id="year_selected">
+                        {% for year in year_options %}
+                        <option value="{{year}}">{{year}}</option>
+                        {% endfor %}
+                    </select>
+                    <select class="form-select form-select-lg" id="position_selected">
+                        {% for position in position_options %}
+                        <option value="{{position}}">{{position}}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="button" class="btn btn-primary" id="get_scatterplot" onclick="getScatterplot()">
+                        Generate
+                    </button>
                 </p>
+
+                <div class="row">
+                    <div class="col">
+                        <p class="visualization-label">
+                            Scatterplot
+                        </p>
+                        <img id="scatterplot" class="default-hidden" src="static/default.jpeg">
+                    </div>
+
+                    <div class="col">
+                        <p class="visualization-label">
+                            Histogram
+                        </p>
+                        <img id="histogram" class="default-hidden" src="static/default.jpeg">
+                    </div>
+                </div>
+
+
+                <br>
+                <br>
 
                 <p>
-                    <label for="age">
-                        Age
-                        <input type="number" id="age">
-                    </label>
+                    This is a chart with a breakdown of the most significant statistics that were used to
+                    build this machine learning model.
                 </p>
+                
+                <!-- {{description_table_data | safe}} -->
+                {% for table in description_table_data %}
+                    {{description_table_cols[loop.index]}}
+                    {{ table|safe }}
+                {% endfor %}
 
-                <p>
-                    <label for="per">
-                        Player Efficient Rating
-                        <input type="number" id="per">
-                    </label>
-                </p>
+                <br>
+                <br>
 
-                <p>
-                    <label for="ppg">
-                        Points Per Game
-                        <input type="number" id="ppg">
-                    </label>
-                </p>
+                <div>
+                    <h2>
+                        Predict Salary
+                    </h2>
 
-                <p>
-                    <label for="min_per_game">
-                        Minutes Per Game
-                        <input type="number" id="min_per_game">
-                    </label>
-                </p>
+                    <p>
+                        The following player statistics have been found to be the most important determinants
+                        of salary. Input values for each field to get a salary prediction powered by machine learning.
+                    </p>
 
-                <p>
-                    <label for="def_reb_per_game">
-                        Defensive Rebounds Per Game
-                        <input type="number" id="def_reb_per_game">
-                    </label>
-                </p>
+                    <p>
+                        <label for="age">
+                            Age
+                            <input type="number" id="age">
+                        </label>
+                    </p>
 
-                <p>
-                    <label for="fg_per_game">
-                        Field Goals Made Per Game
-                        <input type="number" id="fg_per_game">
-                    </label>
-                </p>
+                    <p>
+                        <label for="per">
+                            Player Efficient Rating
+                            <input type="number" id="per">
+                        </label>
+                    </p>
 
-                <p>
-                    <label for="fga_per_game">
-                        Fields Goals Attempted Per Game
-                        <input type="number" id="fga_per_game">
-                    </label>
-                </p>
+                    <p>
+                        <label for="ppg">
+                            Points Per Game
+                            <input type="number" id="ppg">
+                        </label>
+                    </p>
 
-                <button onclick="getPrediction()">
-                    Get Predicted Salary
-                </button>
-            </div>
+                    <p>
+                        <label for="min_per_game">
+                            Minutes Per Game
+                            <input type="number" id="min_per_game">
+                        </label>
+                    </p>
 
-            <h3 id="predicted_salary">
-            </h3>
+                    <p>
+                        <label for="def_reb_per_game">
+                            Defensive Rebounds Per Game
+                            <input type="number" id="def_reb_per_game">
+                        </label>
+                    </p>
 
-            <br>
-            <br>
-                        
+                    <p>
+                        <label for="fg_per_game">
+                            Field Goals Made Per Game
+                            <input type="number" id="fg_per_game">
+                        </label>
+                    </p>
+
+                    <p>
+                        <label for="fga_per_game">
+                            Fields Goals Attempted Per Game
+                            <input type="number" id="fga_per_game">
+                        </label>
+                    </p>
+
+                    <button type="button" class="btn btn-primary" onclick="getPrediction()">
+                        Get Predicted Salary
+                    </button>
+                </div>
+
+                <h3 id="predicted_salary">
+                </h3>
+
+                <br>
+                <br>
+            </div>  
         </div>
 
     </body>
@@ -152,8 +161,12 @@
 
             post("/getVisual/scatterplot", params).then(data => {
                 console.log(data)
-                document.getElementById("scatterplot").src = data['scatterplot_filename'];
-                document.getElementById("histogram").src = data['histogram_filename'];
+                let scatter = document.getElementById("scatterplot");
+                scatter.src = data['scatterplot_filename'];
+                scatter.style.visibility = "visible";
+                let hist = document.getElementById("histogram");
+                hist.src = data['histogram_filename'];
+                hist.style.visibility = "visible";
                 // document.getElementById("heatmap").src = data['heatmap_filename'];
 
 

@@ -43,7 +43,6 @@ where player_name LIKE '%Tracy%'
 
 
 # TODO: Add exception handling!!!
-# TODO: Add route to clear pics in the directory
 @application.route('/')
 def index():
     all_data = entire_dataset()
@@ -66,6 +65,7 @@ def index():
     # described.round(2)
     described['Salary'] = described['Salary'].apply(lambda x: "${0:,.2f}".format(x))
     described['Cap'] = described['Cap'].apply(lambda x: "${0:,.2f}".format(x))
+    relevant_data = described.loc[["mean", "std", "min", "25%", "50%", "75%", "max"]]
 
     # described.set_index([0], inplace=True)
 
@@ -76,15 +76,17 @@ def index():
         stat_options=stat_options,
         year_options = year_options[1:],
         position_options = position_options,
-        data=described.loc[["mean", "std", "min", "25%", "50%", "75%", "max"]].to_html()
+        description_table_data=[relevant_data.to_html(classes="table table-striped", header="true")],
+        description_table_cols = relevant_data.columns.values
         )
 
 
 @application.route('/clear-pictures/sdfpgup9fdsfsd9f2345', methods=['GET'])
 def clear_pics():
     files = glob.glob("./app/static/generated/*")
-    print(files)
-    return 200
+    for f in files:
+        os.remove(f)
+    return "success"
 
 
 @application.route('/prediction/salary', methods=['POST'])
