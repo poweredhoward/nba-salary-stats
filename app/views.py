@@ -1,4 +1,5 @@
-from os import stat
+import os
+import glob
 from flask import current_app as application
 from flask import request as flask_request
 from flask import render_template
@@ -26,7 +27,7 @@ from app import db
 
 
 TODAYS_SALARY_CAP = 101869000
-
+pd.set_option('float_format', '{:.2f}'.format)
 
 """
 select * from player_salary as sal
@@ -42,6 +43,7 @@ where player_name LIKE '%Tracy%'
 
 
 # TODO: Add exception handling!!!
+# TODO: Add route to clear pics in the directory
 @application.route('/')
 def index():
     all_data = entire_dataset()
@@ -59,14 +61,30 @@ def index():
 
     optimized_fields = all_data[['% of cap', 'salary', 'cap', 'age', 'per', 'ppg', 'min_per_game', 'def_reb_per_game', 'fg_per_game', 'fga_per_game']]
 
+    described = optimized_fields.describe()
+    described.columns = ['% of Cap', 'Salary', 'Cap', 'Age', 'PER', 'PPG', 'MPG', 'DRPG', 'FG Made Per Game', 'FGA Per Game']
+    # described.round(2)
+    described['Salary'] = described['Salary'].apply(lambda x: "${0:,.2f}".format(x))
+    described['Cap'] = described['Cap'].apply(lambda x: "${0:,.2f}".format(x))
+
+    # described.set_index([0], inplace=True)
+
+
 
     return render_template(
         'dashboard.html',
         stat_options=stat_options,
         year_options = year_options[1:],
         position_options = position_options,
-        data=optimized_fields.describe().to_html()
+        data=described.loc[["mean", "std", "min", "25%", "50%", "75%", "max"]].to_html()
         )
+
+
+@application.route('/clear-pictures/sdfpgup9fdsfsd9f2345', methods=['GET'])
+def clear_pics():
+    files = glob.glob("./app/static/generated/*")
+    print(files)
+    return 200
 
 
 @application.route('/prediction/salary', methods=['POST'])
@@ -212,7 +230,7 @@ def post():
 
 def generate_filename():
     filename = uuid.uuid4().hex
-    return "app/static/{}.png".format(filename), "static/{}.png".format(filename)
+    return "app/static/generated/{}.png".format(filename), "static/generated/{}.png".format(filename)
 
 
 # def optimized_dataframe():

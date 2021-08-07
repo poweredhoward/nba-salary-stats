@@ -1,126 +1,139 @@
 <!DOCTYPE html>
 <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+        <title>Salary Stats</title>
+    </head>
     <body>
-        <h1>
-            Analyze NBA Players' Stats and Salaries
-        </h1>
+        <div class="container">
+
+            <h1>
+                Analyze NBA Players' Stats and Salaries
+            </h1>
+
+            <p>
+                <select class="form-select form-select-lg" id="stat_selected">
+                    {% for key, value in stat_options %}
+                        <option value="{{value}}">{{key}}</option>
+                    {% endfor %}
+                </select>
+                <select class="form-select form-select-lg" id="year_selected">
+                    {% for year in year_options %}
+                    <option value="{{year}}">{{year}}</option>
+                    {% endfor %}
+                </select>
+                <select class="form-select form-select-lg" id="position_selected">
+                    {% for position in position_options %}
+                    <option value="{{position}}">{{position}}</option>
+                    {% endfor %}
+                </select>
+                <button type="button" class="btn btn-primary" id="get_scatterplot" onclick="getScatterplot()">
+                    Generate
+                </button>
+            </p>
+
+
+            <p>
+                Scatterplot
+                <img id="scatterplot" class="default-hidden" src="static/default.jpeg">
+            </p>
 
         <p>
-            <select id="stat_selected">
-                {% for key, value in stat_options %}
-                    <option value="{{value}}">{{key}}</option>
-                {% endfor %}
-            </select>
-            <select id="year_selected">
-                {% for year in year_options %}
-                <option value="{{year}}">{{year}}</option>
-                {% endfor %}
-            </select>
-            <select id="position_selected">
-                {% for position in position_options %}
-                <option value="{{position}}">{{position}}</option>
-                {% endfor %}
-            </select>
-            <button id="get_scatterplot" onclick="getScatterplot()">
-                Generate
-            </button>
-        </p>
+                Histogram
+                <img id="histogram" class="default-hidden" src="static/default.jpeg">
+            </p>
+            <!-- 
+            <p>
+                Heatmap
+                <img id="heatmap" src="static.heatmap.png">
+            </p> -->
 
-
-        <p>
-            Scatterplot
-            <img id="scatterplot" class="default-hidden" src="static/default.jpeg">
-        </p>
-
-       <p>
-            Histogram
-            <img id="histogram" class="default-hidden" src="static/default.jpeg">
-        </p>
-        <!-- 
-        <p>
-            Heatmap
-            <img id="heatmap" src="static.heatmap.png">
-        </p> -->
-
-        <br>
-        <br>
-
-        <p>
-            This is a chart with a breakdown of the most significant statistics that were used to
-            build this machine learning mode.
-        </p>
-        
-        {{data | safe}}
-
-        <div>
-            <h2>
-                Predict Salary
-            </h2>
+            <br>
+            <br>
 
             <p>
-                The following player statistics have been found to be the most important determinants
-                of salary
+                This is a chart with a breakdown of the most significant statistics that were used to
+                build this machine learning model.
             </p>
+            
+            {{data | safe}}
 
-            <p>
-                <label for="age">
-                    Age
-                    <input type="number" id="age">
-                </label>
-            </p>
+            <div>
+                <h2>
+                    Predict Salary
+                </h2>
 
-            <p>
-                <label for="per">
-                    Player Efficient Rating
-                    <input type="number" id="per">
-                </label>
-            </p>
+                <p>
+                    The following player statistics have been found to be the most important determinants
+                    of salary
+                </p>
 
-            <p>
-                <label for="ppg">
-                    Points Per Game
-                    <input type="number" id="ppg">
-                </label>
-            </p>
+                <p>
+                    <label for="age">
+                        Age
+                        <input type="number" id="age">
+                    </label>
+                </p>
 
-            <p>
-                <label for="min_per_game">
-                    Minutes Per Game
-                    <input type="number" id="min_per_game">
-                </label>
-            </p>
+                <p>
+                    <label for="per">
+                        Player Efficient Rating
+                        <input type="number" id="per">
+                    </label>
+                </p>
 
-            <p>
-                <label for="def_reb_per_game">
-                    Defensive Rebounds Per Game
-                    <input type="number" id="def_reb_per_game">
-                </label>
-            </p>
+                <p>
+                    <label for="ppg">
+                        Points Per Game
+                        <input type="number" id="ppg">
+                    </label>
+                </p>
 
-            <p>
-                <label for="fg_per_game">
-                    Field Goals Made Per Game
-                    <input type="number" id="fg_per_game">
-                </label>
-            </p>
+                <p>
+                    <label for="min_per_game">
+                        Minutes Per Game
+                        <input type="number" id="min_per_game">
+                    </label>
+                </p>
 
-            <p>
-                <label for="fga_per_game">
-                    Fields Goals Attempted Per Game
-                    <input type="number" id="fga_per_game">
-                </label>
-            </p>
+                <p>
+                    <label for="def_reb_per_game">
+                        Defensive Rebounds Per Game
+                        <input type="number" id="def_reb_per_game">
+                    </label>
+                </p>
 
-            <button onclick="getPrediction()">
-                Get Predicted Salary
-            </button>
+                <p>
+                    <label for="fg_per_game">
+                        Field Goals Made Per Game
+                        <input type="number" id="fg_per_game">
+                    </label>
+                </p>
+
+                <p>
+                    <label for="fga_per_game">
+                        Fields Goals Attempted Per Game
+                        <input type="number" id="fga_per_game">
+                    </label>
+                </p>
+
+                <button onclick="getPrediction()">
+                    Get Predicted Salary
+                </button>
+            </div>
+
+            <h3 id="predicted_salary">
+            </h3>
+
+            <br>
+            <br>
+                        
         </div>
-
-        <h3 id="predicted_salary">
-        </h3>
-
-        <br>
-        <br>
 
     </body>
 
