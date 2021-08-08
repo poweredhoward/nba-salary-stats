@@ -28,28 +28,18 @@ from app import db
 TODAYS_SALARY_CAP = 101869000
 pd.set_option('float_format', '{:.2f}'.format)
 
-"""
-select * from player_salary as sal
-inner join player_stats stats on stats.player_name = sal.player_name and stats.season = sal.season_start
-where season_start < 2010
-and sal.player_name = 'Tracy McGrady'
-order by salary desc
-
-select * from player_salary
-where player_name LIKE '%Tracy%'
-
-"""
-
 
 # TODO: Add exception handling!!!
+# Main dashboard presentation
 @application.route('/')
 def index():
     all_data = entire_dataset()
 
+    # Choose statistic fields that will be selectable
     stat_options = stats_column_mapping.items()
     stat_options = list(stat_options)[6:]
 
-    # stat_options = list(all_data.columns.values)
+    # Choose years that will be selectable
     years = db.session.query(Stats)\
         .distinct(Stats.season)\
         .filter(Stats.season > 1995)\
@@ -57,8 +47,10 @@ def index():
     year_options = [ year.season for year in years ]
     position_options = ['PG', 'SG', 'G', 'SF', 'PF', 'F', 'C', 'All']
 
+    # The "core statistics" that are the best predictors of salary
     optimized_fields = all_data[['% of cap', 'salary', 'cap', 'age', 'per', 'ppg', 'min_per_game', 'def_reb_per_game', 'fg_per_game', 'fga_per_game']]
 
+    # Clean/wrangle data so it looks better
     described = optimized_fields.describe()
     described.columns = ['% of Cap', 'Salary', 'Cap', 'Age', 'PER', 'PPG', 'MPG', 'DRPG', 'FG Made Per Game', 'FGA Per Game']
     described['Salary'] = described['Salary'].apply(lambda x: "${0:,.2f}".format(x))
@@ -76,7 +68,7 @@ def index():
         )
 
 
-
+# Endpoint to delete pictures from the /generated folder
 @application.route('/clear-pictures/sdfpgup9fdsfsd9f2345', methods=['GET'])
 def clear_pics():
     files = glob.glob("./app/static/generated/*")
@@ -84,7 +76,7 @@ def clear_pics():
         os.remove(f)
     return "success"
 
-
+# Get salary prediction
 @application.route('/prediction/salary', methods=['POST'])
 def get_prediction():
     params = flask_request.get_json(force=True)
@@ -112,7 +104,7 @@ def get_prediction():
     }
 
 
-
+# Used in application deployment, seed DB with initial values
 @application.route('/seed/6516854352asdffsdg')
 def get():
     seed_salary_table()
@@ -120,6 +112,7 @@ def get():
     return {"hello": "world"}
 
 
+# Get both visualizations
 @application.route('/getVisual/scatterplot', methods=['POST'])
 def post():
     params = flask_request.get_json(force=True)
@@ -141,10 +134,8 @@ def post():
             .join(Salary, and_(Stats.season==Salary.season_start, Stats.player_name==Salary.player_name))\
             .filter(f)\
             .limit(4000)
-        
     
     df = pd.read_sql(results1.statement, db.session.bind)
-
 
     # TODO: Set boundaries of Y axis for max salary
     scatterplot = sns.lmplot(
@@ -155,7 +146,6 @@ def post():
 
     file_path, scatterplot_filename = generate_filename()
     scatterplot.savefig("{}".format(file_path))
-
 
     histogram = sns.displot(df["salary"], bins=100)
     file_path, histogram_filename = generate_filename()
@@ -169,13 +159,12 @@ def post():
 
 
 
-
 def generate_filename():
     filename = uuid.uuid4().hex
     return "app/static/generated/{}.png".format(filename), "static/generated/{}.png".format(filename)
 
 
-
+# Returns all raw CSV data together
 def entire_dataset():
     stats_dataset = pd.read_csv("salary-data_2000.csv")
     stats_dataset.dropna()
@@ -206,10 +195,9 @@ def entire_dataset():
 
 
 
-
-
 optimized_fields = ['% of cap', 'age', 'per', 'ppg', 'min_per_game', 'def_reb_per_game', 'fg_per_game', 'fga_per_game']
 
+# Ignore
 """
 select 
     distinct
@@ -266,8 +254,21 @@ ON sal.season_start=stats.season AND sal.player_name=stats.player_name
 
 """
 
+# Ignore
+"""
+select * from player_salary as sal
+inner join player_stats stats on stats.player_name = sal.player_name and stats.season = sal.season_start
+where season_start < 2010
+and sal.player_name = 'Tracy McGrady'
+order by salary desc
+
+select * from player_salary
+where player_name LIKE '%Tracy%'
+
+"""
 
 
+# Mapping of displayed column names to names inside data strcuture
 salary_column_mapping = {
     'Register Value': "data_id",
     'Player Name':"player_name",
@@ -277,7 +278,6 @@ salary_column_mapping = {
     'Team': "team_short",
     'Full Team Name':"team_full"
 }
-
 
 stats_column_mapping = {
     "Index": "data_id",
@@ -335,7 +335,6 @@ stats_column_mapping = {
 
 
 
-    
 def seed_salary_table():
     with open('app/static/data/player_salaries.csv') as salary_file:
         csv_reader = csv.DictReader(salary_file, delimiter=',')
