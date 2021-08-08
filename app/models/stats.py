@@ -57,12 +57,6 @@ class Stats(db.Model):
     fouls = db.Column(db.Integer)
     points = db.Column(db.Integer)   
 
-
-
-    # def __init__(self, **kwargs):
-    #     for k, v in kwargs.iteritems():
-    #         self.k = v
-
     
     def __repr__(self):
         return "#{}  {}   {}-{}({})".format(self.id, self.player_name, self.season_start, self.season_end, self.team_short)

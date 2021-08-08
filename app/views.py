@@ -8,7 +8,6 @@ from numpy import histogram
 import numpy as np
 from joblib import dump, load
 
-# from . import 
 
 from sqlalchemy import and_
 import csv
@@ -62,13 +61,9 @@ def index():
 
     described = optimized_fields.describe()
     described.columns = ['% of Cap', 'Salary', 'Cap', 'Age', 'PER', 'PPG', 'MPG', 'DRPG', 'FG Made Per Game', 'FGA Per Game']
-    # described.round(2)
     described['Salary'] = described['Salary'].apply(lambda x: "${0:,.2f}".format(x))
     described['Cap'] = described['Cap'].apply(lambda x: "${0:,.2f}".format(x))
     relevant_data = described.loc[["mean", "std", "min", "25%", "50%", "75%", "max"]]
-
-    # described.set_index([0], inplace=True)
-
 
 
     return render_template(
@@ -76,9 +71,10 @@ def index():
         stat_options=stat_options,
         year_options = year_options[1:],
         position_options = position_options,
-        description_table_data=[relevant_data.to_html(classes="table table-striped", header="true")],
+        description_table_data=[relevant_data.to_html(classes="table table-striped", header="false")],
         description_table_cols = relevant_data.columns.values
         )
+
 
 
 @application.route('/clear-pictures/sdfpgup9fdsfsd9f2345', methods=['GET'])
@@ -104,23 +100,9 @@ def get_prediction():
         float(params['fga_per_game'])
     ]])
 
-    # [1398, 0.516, 5.241, 13.8, 1, 50, 1000] -> 10313240.13318653 OUTDATED
-    # [30, 20, 0.37, 16, 37, 20, 34] -> 19373191.83589058
-
-
-    # 'age', 'per', 'ppg', 'min_per_game', 'def_reb_per_game', 'fg_per_game', 'fga_per_game'
-    # The two highest correlation models are PPG and PER
-
-    #'age', 'per', 'ppg', 'min_per_game', 'def_reb_per_game', 'fg_per_game', 'fga_per_game'
-    # [0.10806647 0.07723444 0.20894282 0.22335637 0.10230192 0.14825972, 0.13183825]
-    # predi = model_in.predict(np.array([[32.000000,	20.600000,	24.846429,	35.503247,	11.563301,	10.830878,	18.326087]])) 
-    # [33756126.48432434]
-
-
 
     model = load('random_forest_model_2000_final.joblib')
     salary_prediction = model.predict(input)
-    print(salary_prediction)
 
     raw_prediction = (float(salary_prediction[0]) / 100) * TODAYS_SALARY_CAP
     formatted_float = "${:,.2f}".format(raw_prediction)
@@ -133,17 +115,9 @@ def get_prediction():
 
 @application.route('/seed/6516854352asdffsdg')
 def get():
-    print("Seeding")
     seed_salary_table()
     seed_stats_table()
     return {"hello": "world"}
-
-@application.route('/plot.png')
-def plot_png():
-    read_img = matplotlib.image.imread('plot.png')
-    return Response(read_img, mimetype="image/png")
-
-
 
 
 @application.route('/getVisual/scatterplot', methods=['POST'])
@@ -155,34 +129,22 @@ def post():
 
     img = io.BytesIO()
 
-    # results = db.session\
-        # .query(Stats.player_name, Salary.salary,Stats.season, Stats.team)\
-        # .join(Salary, and_(Stats.season==Salary.season_start, Stats.player_name==Salary.player_name))\
-        # .limit(2000)\
-        # .all()
     
     filters = [Salary.season_start > year_selected]
     if position_selected and "All" not in position_selected:
         filters.append((Stats.position.like(position_selected)))
-    # else:
-    #     filters.append((Stats.season > 1990))
+
     f = and_(*filters)
  
-    print("hi")
-
     results1 = db.session\
             .query(Stats.player_name, Salary.salary, Stats.season, Stats.team, getattr(Stats,stat_selected) )\
             .join(Salary, and_(Stats.season==Salary.season_start, Stats.player_name==Salary.player_name))\
             .filter(f)\
             .limit(4000)
-    
-    
         
     
     df = pd.read_sql(results1.statement, db.session.bind)
-    # print(df)
 
-    # players = sns.load_dataset(df)
 
     # TODO: Set boundaries of Y axis for max salary
     scatterplot = sns.lmplot(
@@ -195,31 +157,9 @@ def post():
     scatterplot.savefig("{}".format(file_path))
 
 
-    # histogram = sns.displot(
-    #     data = df,
-    #     x=stat_selected,
-    #     y="salary",
-    #     kind="kde"
-    # )
     histogram = sns.displot(df["salary"], bins=100)
     file_path, histogram_filename = generate_filename()
     histogram.savefig("{}".format(file_path))
-
-
-
-    # heatmap = sns.boxplot(
-    #     data = df,
-    #     x=stat_selected,
-    #     y="salary"
-    # )
-    # file_path, heatmap_filename = generate_filename()
-    # heatmap.figure.savefig("{}".format(file_path))
-
-    # fig = plot.get_figure()
-
-    # plot.close()
-
-    # sns.savefig(img, format="png")
 
 
     return {
@@ -235,7 +175,6 @@ def generate_filename():
     return "app/static/generated/{}.png".format(filename), "static/generated/{}.png".format(filename)
 
 
-# def optimized_dataframe():
 
 def entire_dataset():
     stats_dataset = pd.read_csv("salary-data_2000.csv")
@@ -398,7 +337,6 @@ stats_column_mapping = {
 
     
 def seed_salary_table():
-    # TODO: Normalize salaries based on inflation
     with open('app/static/data/player_salaries.csv') as salary_file:
         csv_reader = csv.DictReader(salary_file, delimiter=',')
         line_count = 0

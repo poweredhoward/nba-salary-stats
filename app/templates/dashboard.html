@@ -63,9 +63,8 @@
                     build this machine learning model.
                 </p>
                 
-                <!-- {{description_table_data | safe}} -->
+                <b>Data is from 1996 - 2016</b>
                 {% for table in description_table_data %}
-                    {{description_table_cols[loop.index]}}
                     {{ table|safe }}
                 {% endfor %}
 
@@ -160,28 +159,15 @@
             }
 
             post("/getVisual/scatterplot", params).then(data => {
-                console.log(data)
                 let scatter = document.getElementById("scatterplot");
                 scatter.src = data['scatterplot_filename'];
                 scatter.style.visibility = "visible";
                 let hist = document.getElementById("histogram");
                 hist.src = data['histogram_filename'];
                 hist.style.visibility = "visible";
-                // document.getElementById("heatmap").src = data['heatmap_filename'];
-
 
             })            
         }
-
-
-        function seedFunction(){
-            console.log("seed")
-            fetch("/seed/6516854352asdffsdg").then( function(res) {
-                console.log("worked")
-                return res.json()
-            })
-        }
-
 
         function getPrediction(){
             let age = document.getElementById("age").value;
@@ -203,15 +189,10 @@
             }
 
             post('/prediction/salary', params).then(data => {
-                console.log(data);
-
                 let salary = data['salary_prediction'];
                 document.getElementById("predicted_salary").textContent = salary
 
-
             })
-
-
         }
 
 
@@ -225,7 +206,6 @@
             if (response.ok){
                 return response.json()
             }
-             
         }
 
     </script>
